@@ -1,0 +1,7 @@
+numpy
+pandas
+pyarrow
+rdkit
+rdchiral
+openai
+urllib3

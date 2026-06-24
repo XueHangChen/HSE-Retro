@@ -1,0 +1,36 @@
+# Python/cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Local environments and credentials
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+
+# IDE/editor state
+.vscode/
+.idea/
+
+# Data, models, and outputs are not part of this code release
+data/**
+!data/
+!data/database.py
+dataset/
+models/
+output/
+output_*/
+*.log
+*.tmp
+*.pdf
+*.ipynb
+
+# Local publish/worktree scratch
+.publish/
+.worktrees/
+worktrees/
