@@ -2,7 +2,7 @@ import json
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Tuple
-from llm.client import get_deepseek_client, get_llm_client
+from llm.client import get_critic_client, get_llm_client
 from llm.parser import parse_llm_output
 from llm.prompts import (
     INITIALIZATION_PROMPT,
@@ -185,7 +185,7 @@ def generate_initial_macro_experience(
             draft = draft[: max_chars - 40].rstrip() + "\n... [truncated]"
         return draft
 
-    critic_client = get_deepseek_client()
+    critic_client = get_critic_client()
 
     print("[Experience][INFO] Initial macro agent 2 critiquing strategy.")
     critique_prompt = INITIAL_MACRO_CRITIC_PROMPT.format(
@@ -292,10 +292,10 @@ def evolve_experience(
     batch_str = "\n".join(current_batch) if current_batch else "None"
 
     try:
-        from llm.client import get_llm_client, get_deepseek_client
+        from llm.client import get_critic_client, get_llm_client
         
         main_client = get_llm_client()
-        critic_client = get_deepseek_client()
+        critic_client = get_critic_client()
 
         if not use_debate:
             if prompt_template is None:

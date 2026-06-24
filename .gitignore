@@ -25,6 +25,7 @@ dataset/
 models/
 output/
 output_*/
+scripts/
 *.log
 *.tmp
 *.pdf

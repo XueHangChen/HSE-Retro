@@ -48,10 +48,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--output-prefix", default=None)
 
-    parser.add_argument("--provider", default="qian_duo_duo")
-    parser.add_argument("--model", default="deepseek-v3")
-    parser.add_argument("--critic-provider", default="qian_duo_duo")
-    parser.add_argument("--critic-model", default="deepseek-v4-flash")
+    parser.add_argument("--model", default=None)
+    parser.add_argument("--critic-model", default=None)
     parser.add_argument("--budget", type=int, default=100)
     parser.add_argument("--route-width", type=int, default=5)
     parser.add_argument("--rag-top-k", type=int, default=5)
@@ -92,14 +90,6 @@ def build_command(args: argparse.Namespace) -> list[str]:
         str(merged_output),
         "--workers",
         str(args.workers),
-        "--provider",
-        args.provider,
-        "--model",
-        args.model,
-        "--critic-provider",
-        args.critic_provider,
-        "--critic-model",
-        args.critic_model,
         "--budget",
         str(args.budget),
         "--route-width",
@@ -123,6 +113,10 @@ def build_command(args: argparse.Namespace) -> list[str]:
         "--progress-label",
         info["label"],
     ]
+    if args.model:
+        command += ["--model", args.model]
+    if args.critic_model:
+        command += ["--critic-model", args.critic_model]
     if args.ablation_no_macro:
         command.append("--ablation-no-macro")
     if args.ablation_no_micro:

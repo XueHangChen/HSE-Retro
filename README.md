@@ -1,7 +1,6 @@
 # HSE-Retro
 
-Code for HSE-Retro: LLM-guided retrosynthesis planning with structured
-experience and template-backed route validation.
+Code for HSE-Retro.
 
 ## Setups
 
@@ -9,41 +8,29 @@ experience and template-backed route validation.
 pip install -r requirements.txt
 ```
 
-Set the LLM API key before running experiments:
-
-```bash
-export QIAN_DUO_DUO_API_KEY=your_api_key
-```
-
-On Windows PowerShell:
-
-```powershell
-$env:QIAN_DUO_DUO_API_KEY = "your_api_key"
-```
+Configure your own LLM API endpoint before running experiments.
 
 ## Data
 
-Datasets, template databases, model checkpoints, and generated outputs are not
-included in this repository. Place local resources under `data/` and `models/`
-following the paths in `config/default_config.py`.
+Datasets, template databases, model checkpoints, and generated outputs are not included.
+Place local resources under `data/` and `models/`.
 
 ## Experiments
 
-Run USPTO-190 style experiments:
+USPTO-190:
 
 ```bash
-python run_aot_parallel.py --targets data/test_sets/USPTO-190.smi --workers 2 --budget 100
+python run_aot_parallel.py --targets data/test_sets/USPTO-190.smi
 ```
 
-Run Pistachio experiments:
+Pistachio Hard:
 
 ```bash
-python run_pistachio_parallel.py hard --workers 2 --budget 100
-python run_pistachio_parallel.py reachable --workers 2 --budget 100
+python run_pistachio_parallel.py hard
 ```
 
-Consolidate results:
+Pistachio Reachable:
 
 ```bash
-python scripts/consolidate_experiments.py
+python run_pistachio_parallel.py reachable
 ```

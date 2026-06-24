@@ -24,7 +24,7 @@ class LLMAccountError(BaseException):
 
 
 class LLMServiceError(BaseException):
-    """Transient provider/network problem; stop the worker without recording a route failure."""
+    """Transient LLM/network problem; stop the worker without recording a route failure."""
 
 
 class MockLLMClient:
@@ -267,7 +267,7 @@ class OpenAIProxyClient:
 
 
 _GLOBAL_LLM_CLIENT_INSTANCE = None
-_GLOBAL_DEEPSEEK_CLIENT_INSTANCE = None
+_GLOBAL_CRITIC_CLIENT_INSTANCE = None
 
 
 def get_llm_client():
@@ -278,7 +278,7 @@ def get_llm_client():
         "resolve_model_name",
         lambda model=None: getattr(default_config, "LLM_MODEL_NAME", None),
     )()
-    api_key, base_url = _provider_credentials()
+    api_key, base_url = _llm_credentials()
 
     if (
         _GLOBAL_LLM_CLIENT_INSTANCE is not None
@@ -292,7 +292,7 @@ def get_llm_client():
     else:
         client = OpenAIProxyClient(
             api_key=api_key,
-            model_name=requested_model or default_config.GPT4O_MODEL_NAME,
+            model_name=requested_model,
             base_url=base_url,
         )
 
@@ -300,47 +300,46 @@ def get_llm_client():
     return client
 
 
-def get_deepseek_client():
-    global _GLOBAL_DEEPSEEK_CLIENT_INSTANCE
+def get_critic_client():
+    global _GLOBAL_CRITIC_CLIENT_INSTANCE
 
     requested_model = getattr(
         default_config,
         "resolve_model_name",
         lambda model=None: getattr(default_config, "CRITIC_LLM_MODEL_NAME", None),
     )(getattr(default_config, "CRITIC_LLM_MODEL_NAME", None))
-    api_key, base_url = _provider_credentials(
-        getattr(default_config, "CRITIC_LLM_PROVIDER", getattr(default_config, "LLM_PROVIDER", "qian_duo_duo"))
-    )
+    api_key, base_url = _critic_credentials()
 
     if (
-        _GLOBAL_DEEPSEEK_CLIENT_INSTANCE is not None
-        and getattr(_GLOBAL_DEEPSEEK_CLIENT_INSTANCE, "model_name", None) == requested_model
-        and getattr(_GLOBAL_DEEPSEEK_CLIENT_INSTANCE, "base_url", None) == base_url
+        _GLOBAL_CRITIC_CLIENT_INSTANCE is not None
+        and getattr(_GLOBAL_CRITIC_CLIENT_INSTANCE, "model_name", None) == requested_model
+        and getattr(_GLOBAL_CRITIC_CLIENT_INSTANCE, "base_url", None) == base_url
     ):
-        return _GLOBAL_DEEPSEEK_CLIENT_INSTANCE
+        return _GLOBAL_CRITIC_CLIENT_INSTANCE
 
     if default_config.USE_MOCK:
-        client = MockLLMClient(api_key="mock", model_name="mock_deepseek")
+        client = MockLLMClient(api_key="mock", model_name="mock_critic")
     else:
         client = OpenAIProxyClient(
             api_key=api_key,
-            model_name=requested_model or getattr(default_config, "DEEPSEEK_V4_FLASH_MODEL_NAME", "deepseek-v4-flash"),
+            model_name=requested_model,
             base_url=base_url,
         )
 
-    _GLOBAL_DEEPSEEK_CLIENT_INSTANCE = client
+    _GLOBAL_CRITIC_CLIENT_INSTANCE = client
     return client
 
 
 def reset_llm_clients() -> None:
     """Clear cached clients after changing model/API configuration in notebooks."""
-    global _GLOBAL_LLM_CLIENT_INSTANCE, _GLOBAL_DEEPSEEK_CLIENT_INSTANCE
+    global _GLOBAL_LLM_CLIENT_INSTANCE, _GLOBAL_CRITIC_CLIENT_INSTANCE
     _GLOBAL_LLM_CLIENT_INSTANCE = None
-    _GLOBAL_DEEPSEEK_CLIENT_INSTANCE = None
+    _GLOBAL_CRITIC_CLIENT_INSTANCE = None
 
 
-def _provider_credentials(provider: str | None = None) -> tuple[str, str]:
-    provider = (provider or getattr(default_config, "LLM_PROVIDER", "qian_duo_duo")).lower()
-    if provider in {"qian_duo_duo", "qianduoduo", "qdd", "openai_proxy"}:
-        return default_config.QIAN_DUO_DUO_API_KEY, default_config.QIAN_DUO_DUO_BASE_URL
-    raise ValueError(f"Unknown LLM provider: {provider}")
+def _llm_credentials() -> tuple[str, str]:
+    return default_config.LLM_API_KEY, default_config.LLM_BASE_URL
+
+
+def _critic_credentials() -> tuple[str, str]:
+    return default_config.CRITIC_LLM_API_KEY, default_config.CRITIC_LLM_BASE_URL

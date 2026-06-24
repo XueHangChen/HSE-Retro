@@ -29,32 +29,12 @@ TEMPLATE_PRODUCT_FINGERPRINT_CACHE_PATH = os.path.join(
 # ---------------------------------------------------------------------------
 
 USE_MOCK = False
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "qian_duo_duo")
-
-GPT4O_MODEL_NAME = os.getenv("GPT4O_MODEL_NAME", "gpt-4o")
-DEEPSEEK_MODEL_NAME = os.getenv("DEEPSEEK_MODEL_NAME", "deepseek-ai/DeepSeek-V3")
-DEEPSEEK_V4_FLASH_MODEL_NAME = os.getenv(
-    "DEEPSEEK_V4_FLASH_MODEL_NAME",
-    "deepseek-v4-flash",
-)
-DEEPSEEK_V4_PRO_MODEL_NAME = os.getenv(
-    "DEEPSEEK_V4_PRO_MODEL_NAME",
-    "deepseek-v4-pro",
-)
-DEEPSEEK_V4_MODEL_NAME = os.getenv(
-    "DEEPSEEK_V4_MODEL_NAME",
-    DEEPSEEK_V4_FLASH_MODEL_NAME,
-)
-
-LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", DEEPSEEK_MODEL_NAME)
-CRITIC_LLM_PROVIDER = os.getenv("CRITIC_LLM_PROVIDER", "qian_duo_duo")
-CRITIC_LLM_MODEL_NAME = os.getenv(
-    "CRITIC_LLM_MODEL_NAME",
-    DEEPSEEK_V4_FLASH_MODEL_NAME,
-)
-
-QIAN_DUO_DUO_BASE_URL = "https://api2.aigcbest.top/v1"
-QIAN_DUO_DUO_API_KEY = os.getenv("QIAN_DUO_DUO_API_KEY", "")
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "")
+LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "")
+CRITIC_LLM_API_KEY = os.getenv("CRITIC_LLM_API_KEY", LLM_API_KEY)
+CRITIC_LLM_BASE_URL = os.getenv("CRITIC_LLM_BASE_URL", LLM_BASE_URL)
+CRITIC_LLM_MODEL_NAME = os.getenv("CRITIC_LLM_MODEL_NAME", LLM_MODEL_NAME)
 
 LLM_RUNTIME: Dict[str, Any] = {
     "timeout_seconds": 90,
@@ -68,24 +48,9 @@ LLM_RUNTIME: Dict[str, Any] = {
     "route_proposal_workers": int(os.getenv("LLM_ROUTE_PROPOSAL_WORKERS", "3")),
 }
 
-MODEL_ALIASES: Dict[str, str] = {
-    "gpt-4o": GPT4O_MODEL_NAME,
-    "gpt4o": GPT4O_MODEL_NAME,
-    "deepseek-v3": DEEPSEEK_MODEL_NAME,
-    "deepseek_v3": DEEPSEEK_MODEL_NAME,
-    "deepseek-v4": DEEPSEEK_V4_MODEL_NAME,
-    "deepseek_v4": DEEPSEEK_V4_MODEL_NAME,
-    "deepseek-v4-flash": DEEPSEEK_V4_FLASH_MODEL_NAME,
-    "deepseek_v4_flash": DEEPSEEK_V4_FLASH_MODEL_NAME,
-    "deepseek-v4-pro": DEEPSEEK_V4_PRO_MODEL_NAME,
-    "deepseek_v4_pro": DEEPSEEK_V4_PRO_MODEL_NAME,
-}
-
-
 def resolve_model_name(model: str | None = None) -> str:
-    """Resolve a short model alias or return the provider-specific model id."""
-    name = (model or LLM_MODEL_NAME).strip()
-    return MODEL_ALIASES.get(name.lower(), name)
+    """Return the configured model id."""
+    return (model or LLM_MODEL_NAME).strip()
 
 # ---------------------------------------------------------------------------
 # Paper-level experimental knobs
@@ -152,9 +117,7 @@ ABLATION_POLICY: Dict[str, Any] = {
 
 def configure_experiment(
     *,
-    provider: str | None = None,
     model: str | None = None,
-    critic_provider: str | None = None,
     critic_model: str | None = None,
     budget: int | None = None,
     route_width: int | None = None,
@@ -167,18 +130,14 @@ def configure_experiment(
     ablation_policy: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Set the small set of reportable knobs for a paper-style experiment."""
-    global LLM_PROVIDER, LLM_MODEL_NAME, CRITIC_LLM_PROVIDER, CRITIC_LLM_MODEL_NAME
+    global LLM_MODEL_NAME, CRITIC_LLM_MODEL_NAME
     global BUDGET, ROUTE_WIDTH, RAG_TOP_K, MAX_SEARCH_DEPTH
     global LLM_TEMPERATURE, TEMPLATE_TOP_K
     global CANDIDATE_WIDTH, CANDIDATE_TEMPLATE_TOP_K
     global ABLATION_POLICY
 
-    if provider is not None:
-        LLM_PROVIDER = provider
     if model is not None:
         LLM_MODEL_NAME = resolve_model_name(model)
-    if critic_provider is not None:
-        CRITIC_LLM_PROVIDER = critic_provider
     if critic_model is not None:
         CRITIC_LLM_MODEL_NAME = resolve_model_name(critic_model)
     if budget is not None:
@@ -210,9 +169,7 @@ def experiment_snapshot() -> Dict[str, Any]:
     """Return only the method-defining settings worth saving with results."""
     return {
         "budget": BUDGET,
-        "llm_provider": LLM_PROVIDER,
         "llm_model": resolve_model_name(),
-        "critic_llm_provider": CRITIC_LLM_PROVIDER,
         "critic_llm_model": resolve_model_name(CRITIC_LLM_MODEL_NAME),
         "route_width": ROUTE_WIDTH,
         "rag_top_k": RAG_TOP_K,

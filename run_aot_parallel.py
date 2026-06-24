@@ -86,10 +86,8 @@ def parse_args() -> argparse.Namespace:
         help="Label used for the progress bar.",
     )
 
-    parser.add_argument("--provider", default="qian_duo_duo")
-    parser.add_argument("--model", default="deepseek-v3")
-    parser.add_argument("--critic-provider", default="qian_duo_duo")
-    parser.add_argument("--critic-model", default="deepseek-v4-flash")
+    parser.add_argument("--model", default=None)
+    parser.add_argument("--critic-model", default=None)
     parser.add_argument("--budget", type=int, default=100)
     parser.add_argument("--route-width", type=int, default=5)
     parser.add_argument("--rag-top-k", type=int, default=5)
@@ -294,9 +292,7 @@ def configure_runtime(args: argparse.Namespace) -> Dict[str, Any]:
     from config import default_config
 
     config_snapshot = default_config.configure_experiment(
-        provider=args.provider,
         model=args.model,
-        critic_provider=args.critic_provider,
         critic_model=args.critic_model,
         budget=args.budget,
         route_width=args.route_width,
@@ -692,14 +688,6 @@ def worker_command(args: argparse.Namespace, worker_id: int) -> List[str]:
         args.merged_output,
         "--merged-output",
         args.merged_output,
-        "--provider",
-        args.provider,
-        "--model",
-        args.model,
-        "--critic-provider",
-        args.critic_provider,
-        "--critic-model",
-        args.critic_model,
         "--budget",
         str(args.budget),
         "--route-width",
@@ -717,6 +705,10 @@ def worker_command(args: argparse.Namespace, worker_id: int) -> List[str]:
         "--candidate-template-top-k",
         str(args.candidate_template_top_k),
     ]
+    if args.model:
+        command += ["--model", args.model]
+    if args.critic_model:
+        command += ["--critic-model", args.critic_model]
     if args.ablation_no_macro:
         command.append("--ablation-no-macro")
     if args.ablation_no_micro:
